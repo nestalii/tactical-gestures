@@ -1,116 +1,117 @@
-# Система розпізнавання тактичних жестових сигналів
+# Tactical Hand-Signal Recognition System
 
-Бакалаврська робота, КПІ ім. Ігоря Сікорського, ФПМ, 2026.
-Авторка: Анастасія Ринкевич.
+Bachelor's thesis, Igor Sikorsky Kyiv Polytechnic Institute, Faculty of Applied Mathematics, 2026.
+Author: Anastasiia Rynkevych.
 
-Система розпізнає тактичні жести ЗСУ з відеопотоку вебкамери і в реальному часі
-перетворює їх на голосові команди. Працює повністю офлайн.
+The system recognizes Ukrainian Armed Forces tactical hand signals from a live webcam stream
+and converts them into voice commands in real time. It runs fully offline.
 
-**Навіщо:** голосова команда демаскує позицію, а радіо вразливе до РЕБ. Жести
-надійні, але отримувач мусить дивитися на того, хто їх показує, і відводити
-погляд від свого сектора. Система знімає це обмеження.
+**Why:** voice commands give away a position, and radio is vulnerable to electronic warfare.
+Hand signals are reliable, but the receiver has to keep looking at the sender instead of
+watching their own sector. This system removes that constraint.
 
-## Результати
+## Results
 
-5-fold стратифікована крос-валідація на 380 кліпах (по 304 кліпи для навчання й 76 для валідації в кожному фолді):
+5-fold stratified cross-validation on 380 clips (304 train / 76 validation per fold):
 
-| Метрика | Значення |
+| Metric | Value |
 |---|---|
-| Точність | **93,4% ± 2,5%** (95% ДІ: 90,4–96,5%) |
-| Macro-F1 | **93,4%** |
-| Час обробки одного кліпу (GPU T4) | **≈0,13 с** |
-| Класів | 10 жестів |
-| Датасет | 380 кліпів, зібраний і розмічений власноруч |
+| Accuracy | **93.4% ± 2.5%** (95% CI: 90.4–96.5%) |
+| Macro-F1 | **93.4%** |
+| Inference time per clip (GPU T4) | **≈0.13 s** |
+| Classes | 10 gestures |
+| Dataset | 380 clips, recorded and labeled by me |
 
 ![5-fold CV](results/kfold/cv_summary.png)
 
-![Матриця помилок](results/kfold/confusion_matrix_all_folds.png)
+![Confusion matrix](results/kfold/confusion_matrix_all_folds.png)
 
-Найскладніший клас — «Міна» (середній F1 0,85), найчастіше її плутає з «Атакувати» та «Позицією».
-Повні метрики й криві навчання для кожного фолду лежать у [`results/kfold/`](results/kfold/).
+The hardest class is "Mine" (mean F1 0.85), most often confused with "Attack" and "Enemy position".
+Full per-fold metrics and training curves are in [`results/kfold/`](results/kfold/).
 
-Обмеження: дані зняті в домашніх умовах, без камуфляжу, тактичних рукавиць і
-ракурсу з нагрудної камери. Це прототип, наступний етап — польова валідація.
+Limitations: the data was recorded indoors, without camouflage, tactical gloves or a
+chest-camera viewpoint. This is a prototype; field validation is the next step.
 
-## Як це працює
-
-```
-вебкамера → кільцевий буфер (2 с) → 8 кадрів рівномірно → TimeSformer → ймовірності
-         → EMA-згладжування → поріг впевненості → cooldown → WAV-команда
-```
-
-- **Модель:** [TimeSformer-Base](https://huggingface.co/facebook/timesformer-base-finetuned-k400),
-  попередньо навчена на Kinetics-400. Голову замінено на 10 класів, донавчаються
-  лише останні блоки енкодера (transfer learning).
-- **Навчання:** AdamW з різними learning rate для голови та енкодера, cosine annealing,
-  label smoothing, AMP, early stopping. Тренування на Google Colab (T4).
-- **Оцінка:** 5-fold стратифікована крос-валідація, 95% довірчий інтервал за
-  t-розподілом Стьюдента, precision/recall/F1 за класами, матриця помилок.
-- **Потокова постобробка:** EMA (α = 0,3), поріг впевненості 0,7, інтервал
-  блокування 2 с, щоб один жест не спрацьовував кілька разів.
-- **Інтерфейс:** PyQt6, інференс в окремому потоці.
-
-Класи жестів узято з навчальних відео каналу «Пантерівець»: увага, уперед,
-до мене, лягти, атакувати, оточити, розсипатися, позиція противника, міна, засідка.
-
-## Структура
+## How it works
 
 ```
-config.py            — усі гіперпараметри (єдине джерело правди)
+webcam → ring buffer (2 s) → 8 uniformly sampled frames → TimeSformer → probabilities
+       → EMA smoothing → confidence threshold → cooldown → voice command (WAV)
+```
+
+- **Model:** [TimeSformer-Base](https://huggingface.co/facebook/timesformer-base-finetuned-k400)
+  pre-trained on Kinetics-400. The head is replaced with a 10-class one and only the last
+  encoder blocks are fine-tuned (transfer learning).
+- **Training:** AdamW with separate learning rates for head and encoder, cosine annealing,
+  label smoothing, mixed precision, early stopping. Trained on Google Colab (T4).
+- **Evaluation:** 5-fold stratified cross-validation, 95% CI via Student's t-distribution,
+  per-class precision/recall/F1, confusion matrix.
+- **Streaming post-processing:** EMA (α = 0.3), confidence threshold 0.7 and a 2 s cooldown,
+  so one gesture doesn't trigger several times.
+- **UI:** PyQt6 desktop app, inference runs on a separate thread.
+
+Gesture classes come from the "Пантерівець" tactical training videos: danger, forward, come,
+down, attack, encircle, disperse, enemy position, mine, ambush.
+
+## Project structure
+
+```
+config.py              — all hyperparameters (single source of truth)
 src/
-  video_buffer.py    — потокобезпечний кільцевий буфер кадрів
-  preprocessing.py   — підготовка кліпу для моделі
-  model.py           — обгортка TimeSformer, заморожування блоків
-  postprocessing.py  — EMA, поріг, cooldown
-  audio.py           — неблокуюче відтворення команд
-  inference.py       — потоковий інференс (CLI: відеофайл або вебкамера)
-  train.py           — навчання
-  train_kfold.py     — 5-fold крос-валідація
-  evaluate.py        — метрики та графіки
-gui/                 — десктопний інтерфейс PyQt6
+  video_buffer.py      — thread-safe frame ring buffer
+  preprocessing.py     — clip preprocessing for the model
+  model.py             — TimeSformer wrapper, layer freezing
+  postprocessing.py    — EMA, threshold, cooldown
+  audio.py             — non-blocking audio playback
+  inference.py         — streaming inference (CLI: video file or webcam)
+  dataset.py           — PyTorch Dataset with augmentation
+  train.py             — training
+  train_kfold.py       — 5-fold cross-validation
+  evaluate.py          — metrics and plots
+gui/                   — PyQt6 desktop interface
 tools/
-  record_dataset.py  — запис датасету з вебкамери
-  verify_dataset.py  — перевірка цілісності датасету
-  profile_inference.py — замір latency (CPU / GPU)
-  generate_audio.py  — генерація голосових команд (офлайн TTS)
-notebooks/colab_train.ipynb — навчання на Colab T4
-CLAUDE.md            — специфікація проєкту для Claude Code
-.claude/skills/      — CV-скіл для агента
-ROADMAP.md           — план роботи за фазами
+  record_dataset.py    — webcam dataset recorder
+  verify_dataset.py    — dataset integrity check
+  profile_inference.py — latency benchmark (CPU / GPU)
+  generate_audio.py    — offline TTS voice commands
+notebooks/colab_train.ipynb — training on Colab T4
+results/kfold/         — cross-validation results
+CLAUDE.md              — project specification for Claude Code
+ROADMAP.md             — phased work plan
 ```
 
-## Як я працювала з ШІ
+## How I worked with AI
 
-Код написаний разом із **Claude Code**. Архітектуру, вибір моделі, гіперпараметри
-й методику оцінки визначала я, вони зафіксовані в математичному розділі диплома.
+The code was written together with **Claude Code**. I defined the architecture, model choice,
+hyperparameters and evaluation method myself; they are fixed in the math section of the thesis.
 
-- **[CLAUDE.md](CLAUDE.md)** — специфікація для агента: математичні параметри, які
-  не можна змінювати без узгодження, стек і заборонені бібліотеки, структура
-  проєкту, стандарти коду та правила на кшталт «не вигадувати метрики».
-- **[ROADMAP.md](ROADMAP.md)** — робота за фазами: реалізація → збір даних і
-  навчання → оформлення диплома.
-- **[computer-vision-engineer](.claude/skills/computer-vision-engineer/)** — додала
-  з GitHub опис ролі CV-інженера, щоб агент дотримувався практик комп'ютерного зору.
-- Спочатку в plan mode продумувала пайплайн, потім давала агенту невеликі
-  задачі (~100–200 рядків) і перевіряла кожен модуль smoke-тестами.
+- **[CLAUDE.md](CLAUDE.md)** — specification for the agent: math parameters that must not
+  change without approval, tech stack and banned libraries, project layout, coding standards,
+  and rules like "never fabricate metrics".
+- **[ROADMAP.md](ROADMAP.md)** — work in phases: implementation → data collection and
+  training → thesis write-up.
+- **computer-vision-engineer** — a CV engineer role description from GitHub, added so the
+  agent follows computer vision best practices.
+- I planned the pipeline in plan mode first, then gave the agent small tasks
+  (~100–200 lines) and checked every module with smoke tests.
 
-## Запуск
+## Usage
 
 ```bash
 pip install -r requirements.txt
-python -m tools.generate_audio                              # згенерувати 10 WAV
+python -m tools.generate_audio                              # generate 10 WAV commands
 python -m gui.main --checkpoint checkpoints/best_model.pt   # GUI
 python -m src.inference --video clip.mp4 --audio            # CLI
 ```
 
-Навчання (на Colab з GPU):
+Training (on Colab with GPU):
 
 ```bash
 pip install -r requirements-colab.txt
-python -m src.train_kfold      # 5-fold крос-валідація
-python -m src.train            # фінальна модель
-python -m src.evaluate         # метрики та графіки
+python -m src.train_kfold      # 5-fold cross-validation
+python -m src.train            # final model
+python -m src.evaluate         # metrics and plots
 ```
 
-Датасет і ваги моделі в репозиторій не входять: датасет містить відео людей,
-а ваги важать сотні мегабайт.
+The dataset and model weights are not included: the dataset contains videos of people,
+and the weights are several hundred MB.
