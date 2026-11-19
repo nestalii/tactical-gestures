@@ -1,0 +1,12 @@
+data/
+checkpoints/
+assets/audio/*.wav
+evaluation_results/
+kfold_results/
+data_split*.json
+*.pt
+*.pth
+__pycache__/
+venv/
+.venv/
+.idea/
