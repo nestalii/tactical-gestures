@@ -1,0 +1,40 @@
+# Tactical Gesture Recognition System — local (CPU) dependencies.
+# Python 3.11.1, Windows 10/11, no CUDA locally.
+#
+# Pinned for reproducibility on a single-developer thesis project.
+# If a pin breaks (e.g. PyPI yanks a release), update this file and note
+# the swap in the commit message. Do NOT add cloud-TTS, alternative DL
+# frameworks, or web layers — see CLAUDE.md §3 "Do NOT add".
+#
+# Colab GPU overrides live in requirements-colab.txt.
+
+# --- Deep learning core ---
+torch==2.3.1
+torchvision==0.18.1
+transformers==4.44.2
+accelerate==0.33.0
+
+# --- Numerics / imaging ---
+numpy==1.26.4
+Pillow==10.4.0
+opencv-python==4.10.0.84
+# decord ships Windows wheels for Python 3.11. If install fails on a
+# given machine, fall back to OpenCV-only clip reading (CLAUDE.md §7).
+decord==0.6.0
+
+# --- GUI / audio ---
+PyQt6==6.7.1
+# pygame replaces simpleaudio: the latter requires C++ Build Tools on
+# Windows and fails to install on a stock Python 3.11.1 setup.
+# pygame.mixer provides equivalent non-blocking WAV playback, ships
+# pre-built wheels, and is fully offline.
+pygame==2.6.1
+pyttsx3==2.90
+
+# --- Training utilities ---
+scikit-learn==1.5.1
+matplotlib==3.9.2
+seaborn==0.13.2
+scipy==1.14.1
+tqdm==4.66.5
+pyyaml==6.0.2

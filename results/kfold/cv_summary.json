@@ -1,0 +1,171 @@
+{
+  "config": {
+    "n_splits": 5,
+    "seed": 42,
+    "epochs": 20,
+    "batch_size": 4,
+    "early_stop_patience": 5,
+    "head_lr": 0.0003,
+    "encoder_lr": 3e-05,
+    "weight_decay": 0.1,
+    "label_smoothing": 0.1,
+    "unfrozen_blocks": 3,
+    "augment": true,
+    "device": "cuda"
+  },
+  "timestamp": "2026-05-29T12:58:44",
+  "n_total_clips": 380,
+  "per_fold": [
+    {
+      "fold_idx": 1,
+      "best_val_acc": 0.9078947368421053,
+      "macro_f1": 0.9050883430295196,
+      "per_class_f1": {
+        "danger": 1.0,
+        "forward": 0.8571428571428571,
+        "come": 0.8,
+        "down": 0.9333333333333333,
+        "attack": 0.9411764705882353,
+        "encircle": 1.0,
+        "disperse": 0.7692307692307693,
+        "position": 1.0,
+        "mine": 0.75,
+        "ambush": 1.0
+      },
+      "n_train": 304,
+      "n_val": 76,
+      "best_epoch": 10
+    },
+    {
+      "fold_idx": 2,
+      "best_val_acc": 0.9210526315789473,
+      "macro_f1": 0.9216666666666666,
+      "per_class_f1": {
+        "danger": 0.9333333333333333,
+        "forward": 1.0,
+        "come": 0.9333333333333333,
+        "down": 0.8,
+        "attack": 0.875,
+        "encircle": 0.875,
+        "disperse": 0.9333333333333333,
+        "position": 1.0,
+        "mine": 0.9333333333333333,
+        "ambush": 0.9333333333333333
+      },
+      "n_train": 304,
+      "n_val": 76,
+      "best_epoch": 13
+    },
+    {
+      "fold_idx": 3,
+      "best_val_acc": 0.9210526315789473,
+      "macro_f1": 0.9208119658119658,
+      "per_class_f1": {
+        "danger": 1.0,
+        "forward": 0.9333333333333333,
+        "come": 0.9333333333333333,
+        "down": 0.875,
+        "attack": 0.875,
+        "encircle": 1.0,
+        "disperse": 0.9333333333333333,
+        "position": 0.8888888888888888,
+        "mine": 0.7692307692307693,
+        "ambush": 1.0
+      },
+      "n_train": 304,
+      "n_val": 76,
+      "best_epoch": 6
+    },
+    {
+      "fold_idx": 4,
+      "best_val_acc": 0.9605263157894737,
+      "macro_f1": 0.9595173453996984,
+      "per_class_f1": {
+        "danger": 1.0,
+        "forward": 0.9411764705882353,
+        "come": 1.0,
+        "down": 0.9230769230769231,
+        "attack": 0.9333333333333333,
+        "encircle": 1.0,
+        "disperse": 0.9411764705882353,
+        "position": 1.0,
+        "mine": 0.9333333333333333,
+        "ambush": 0.9230769230769231
+      },
+      "n_train": 304,
+      "n_val": 76,
+      "best_epoch": 13
+    },
+    {
+      "fold_idx": 5,
+      "best_val_acc": 0.9605263157894737,
+      "macro_f1": 0.9606410256410257,
+      "per_class_f1": {
+        "danger": 1.0,
+        "forward": 1.0,
+        "come": 0.9333333333333333,
+        "down": 0.9230769230769231,
+        "attack": 0.875,
+        "encircle": 1.0,
+        "disperse": 1.0,
+        "position": 1.0,
+        "mine": 0.875,
+        "ambush": 1.0
+      },
+      "n_train": 304,
+      "n_val": 76,
+      "best_epoch": 19
+    }
+  ],
+  "aggregate": {
+    "n_folds": 5,
+    "mean_accuracy": 0.9342105263157894,
+    "std_accuracy": 0.0246161670182496,
+    "ci_95_lower": 0.9036455179554579,
+    "ci_95_upper": 0.9647755346761209,
+    "mean_macro_f1": 0.9335450693097753,
+    "std_macro_f1": 0.0251085822948218,
+    "mean_per_class_f1": {
+      "danger": {
+        "mean_f1": 0.9866666666666667,
+        "std_f1": 0.029814239699997188
+      },
+      "forward": {
+        "mean_f1": 0.9463305322128852,
+        "std_f1": 0.058971934976407486
+      },
+      "come": {
+        "mean_f1": 0.9200000000000002,
+        "std_f1": 0.07302967433402213
+      },
+      "down": {
+        "mean_f1": 0.890897435897436,
+        "std_f1": 0.0556482625566628
+      },
+      "attack": {
+        "mean_f1": 0.8999019607843138,
+        "std_f1": 0.03421098063040526
+      },
+      "encircle": {
+        "mean_f1": 0.975,
+        "std_f1": 0.055901699437494734
+      },
+      "disperse": {
+        "mean_f1": 0.9154147812971344,
+        "std_f1": 0.08635716278356699
+      },
+      "position": {
+        "mean_f1": 0.9777777777777779,
+        "std_f1": 0.04969039949999535
+      },
+      "mine": {
+        "mean_f1": 0.8521794871794872,
+        "std_f1": 0.08805368633128655
+      },
+      "ambush": {
+        "mean_f1": 0.9712820512820514,
+        "std_f1": 0.039490509350109636
+      }
+    }
+  }
+}

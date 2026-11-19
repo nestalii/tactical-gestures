@@ -1,0 +1,15 @@
+# Colab T4 GPU overrides. Use on Google Colab with CUDA 12.1 wheels.
+#
+# Usage (in the first Colab cell):
+#   !pip install -r requirements-colab.txt
+#
+# This pulls everything from requirements.txt, then replaces the CPU
+# torch/torchvision wheels with CUDA 12.1 wheels. Other dependencies
+# are unchanged.
+
+--extra-index-url https://download.pytorch.org/whl/cu121
+
+-r requirements.txt
+
+torch==2.3.1+cu121
+torchvision==0.18.1+cu121
